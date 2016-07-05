@@ -3,7 +3,13 @@
 # Download, Save XLS as CSV "," delimited
 MACRO(STM32_GET_CHIP_PARAMETERS CHIP _FLASH _RAM _FAMILY)
     STRING(TOUPPER ${CHIP} _CHIP)
-    FILE(STRINGS "stm32mcus.csv" ROW REGEX "^${_CHIP},[0-9]+,[0-9]+$")
+
+    IF(NOT STM32MCUS_CSV)
+        SET(STM32MCUS_CSV stm32mcus.csv)
+    ENDIF()
+
+    FILE(STRINGS ${STM32MCUS_CSV} ROW REGEX "^${_CHIP},[0-9]+,[0-9]+$")
+
     IF(${ROW} MATCHES "${_CHIP},[0-9]+,[0-9]+")
         STRING(REGEX REPLACE ".+,([0-9]+),.+" "\\1" ${_FLASH} ${ROW})
         STRING(REGEX REPLACE ".+,.+,([0-9]+)" "\\1" ${_RAM} ${ROW})
@@ -13,11 +19,13 @@ MACRO(STM32_GET_CHIP_PARAMETERS CHIP _FLASH _RAM _FAMILY)
     ENDIF()
 ENDMACRO()
 
-IF(TESTING)
-    IF(NOT STM32_CHIP)
-        MESSAGE(FATAL_ERROR "STM32_CHIP Undefined!")
-    ENDIF()
+IF(CMAKE_SCRIPT_MODE_FILE) # Run with -P, development only
+    IF(NOT CMAKE_PARENT_LIST_FILE) # Not included, top script
+        IF(NOT STM32_CHIP)
+            MESSAGE(FATAL_ERROR "STM32_CHIP Undefined!")
+        ENDIF()
 
-    STM32_GET_CHIP_PARAMETERS(${STM32_CHIP} FLASH_SIZE RAM_SIZE FAMILY)
-    MESSAGE(${STM32_CHIP}\ Flash:${FLASH_SIZE}\ Ram: ${RAM_SIZE}\ Family: ${FAMILY})
+        STM32_GET_CHIP_PARAMETERS(${STM32_CHIP} FLASH_SIZE RAM_SIZE FAMILY)
+        MESSAGE(${STM32_CHIP}\ Flash:${FLASH_SIZE}\ Ram: ${RAM_SIZE}\ Family: ${FAMILY})
+    ENDIF()
 ENDIF()

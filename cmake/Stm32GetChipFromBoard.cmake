@@ -1,20 +1,29 @@
 MACRO(BOARD_GET_CHIP BOARD CHIP)
     STRING(TOUPPER ${BOARD} BOARD)
-    FILE(STRINGS "stm32boards.csv" ROW REGEX "^${BOARD},.+$")
-    MESSAGE(${ROW})
+
+    IF(NOT STM32BOARDS_CSV)
+        SET(STM32BOARDS_CSV stm32boards.csv)
+    ENDIF()
+
+    FILE(STRINGS ${STM32BOARDS_CSV} ROW REGEX "^${BOARD},.+$")
     IF(${ROW} MATCHES "${BOARD},.+")
         STRING(REGEX REPLACE ".+,(.+)" "\\1" ${CHIP} ${ROW})
-        MESSAGE(-${CHIP}-)
     ELSE()
         MESSAGE(FATAL_ERROR "Invalid/unsupported board: ${BOARD}")
     ENDIF()
 ENDMACRO()
 
-IF(TESTING)
-    IF(NOT BOARD)
-        MESSAGE(FATAL_ERROR "BOARD Undefined!")
-    ENDIF()
+IF(CMAKE_SCRIPT_MODE_FILE) # Run with -P, development only
+    IF(NOT CMAKE_PARENT_LIST_FILE) # Not included, top script
+        IF(NOT BOARD)
+            MESSAGE(FATAL_ERROR "BOARD Undefined!")
+        ENDIF()
 
-    BOARD_GET_CHIP(${BOARD} _CHIP)
-    MESSAGE(Board:\ ${BOARD}\ Mcu:\ ${_CHIP})
+        INCLUDE(Stm32GetChipParameters.cmake)
+
+        BOARD_GET_CHIP(${BOARD} _CHIP)
+        MESSAGE(Board:\ ${BOARD}\ Mcu:\ ${_CHIP})
+        STM32_GET_CHIP_PARAMETERS(${_CHIP} FLASH_SIZE RAM_SIZE FAMILY)
+        MESSAGE(${_CHIP}\ Flash:${FLASH_SIZE}\ Ram: ${RAM_SIZE}\ Family: ${FAMILY})
+    ENDIF()
 ENDIF()
