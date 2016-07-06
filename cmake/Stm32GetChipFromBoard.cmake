@@ -22,8 +22,8 @@ IF(CMAKE_SCRIPT_MODE_FILE) # Run with -P, development only
         INCLUDE(Stm32GetChipParameters.cmake)
 
         BOARD_GET_CHIP(${BOARD} _CHIP)
-        MESSAGE(Board:\ ${BOARD}\ Mcu:\ ${_CHIP})
         STM32_GET_CHIP_PARAMETERS(${_CHIP} FLASH_SIZE RAM_SIZE FAMILY)
-        MESSAGE(${_CHIP}\ Flash:${FLASH_SIZE}\ Ram: ${RAM_SIZE}\ Family: ${FAMILY})
+        MESSAGE(Board:\ ${BOARD}\nMcu:\ ${_CHIP})
+        MESSAGE(Family: ${FAMILY}\nFlash:${FLASH_SIZE}\nRam: ${RAM_SIZE})
     ENDIF()
 ENDIF()
