@@ -1,3 +1,5 @@
+INCLUDE(Stm32GetChipParameters)
+
 SET(CMAKE_C_FLAGS "-mthumb -fno-builtin -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -Wall -std=gnu99 -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize" CACHE INTERNAL "c compiler flags")
 SET(CMAKE_CXX_FLAGS "-mthumb -fno-builtin -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -Wall -std=c++11 -ffunction-sections -fdata-sections -fomit-frame-pointer -mabi=aapcs -fno-unroll-loops -ffast-math -ftree-vectorize" CACHE INTERNAL "cxx compiler flags")
 SET(CMAKE_ASM_FLAGS "-mthumb -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=softfp -x assembler-with-cpp" CACHE INTERNAL "asm compiler flags")
@@ -19,27 +21,6 @@ MACRO(STM32_GET_CHIP_TYPE CHIP CHIP_TYPE)
         MATH(EXPR INDEX "${INDEX}+1")
     ENDFOREACH()
     SET(${CHIP_TYPE} ${RESULT_TYPE})
-ENDMACRO()
-
-# How to make stm32mcus.csv:
-# Visit http://www.st.com/content/st_com/en/products/microcontrollers/stm32-32-bit-arm-cortex-mcus.html?querycriteria=productId=SC1169
-# Click Download, save ProductsList.xls, open with OO or MS Excel and save as CSV file.
-
-SET(_STM32MCUS_CSV ${CMAKE_CURRENT_LIST_DIR}/stm32mcus.csv) # Keep path to module to use in macro
-
-MACRO(STM32_GET_CHIP_PARAMETERS CHIP FLASH_SIZE RAM_SIZE)
-    IF(NOT STM32MCUS_CSV)
-        SET(STM32MCUS_CSV ${_STM32MCUS_CSV})
-    ENDIF()
-
-    FILE(STRINGS ${STM32MCUS_CSV} ROW REGEX "^${CHIP},[0-9]+,[0-9]+$")
-
-    IF(${ROW} MATCHES "${CHIP},[0-9]+,[0-9]+")
-        STRING(REGEX REPLACE ".+,([0-9]+),.+" "\\1" ${FLASH_SIZE} ${ROW})
-        STRING(REGEX REPLACE ".+,.+,([0-9]+)" "\\1" ${RAM_SIZE} ${ROW})
-    ELSE()
-        MESSAGE(FATAL_ERROR "Invalid/unsupported STM32F4 chip: ${CHIP}")
-    ENDIF()
 ENDMACRO()
 
 FUNCTION(STM32_SET_CHIP_DEFINITIONS TARGET CHIP_TYPE)
