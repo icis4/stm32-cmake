@@ -21,54 +21,27 @@ MACRO(STM32_GET_CHIP_TYPE CHIP CHIP_TYPE)
     SET(${CHIP_TYPE} ${RESULT_TYPE})
 ENDMACRO()
 
+# How to make stm32mcus.csv:
+# Visit http://www.st.com/content/st_com/en/products/microcontrollers/stm32-32-bit-arm-cortex-mcus.html?querycriteria=productId=SC1169
+# Click Download, save ProductsList.xls, open with OO or MS Excel and save as CSV file.
+
+SET(_STM32MCUS_CSV ${CMAKE_CURRENT_LIST_DIR}/stm32mcus.csv) # Keep path to module to use in macro
+
 MACRO(STM32_GET_CHIP_PARAMETERS CHIP FLASH_SIZE RAM_SIZE)
-    STRING(REGEX REPLACE "^[sS][tT][mM]32[fF](4[01234][15679].[BCERGI]).*$" "\\1" STM32_CODE ${CHIP})
-    STRING(REGEX REPLACE "^[sS][tT][mM]32[fF]4[01234][15679].([BCERGI]).*$" "\\1" STM32_SIZE_CODE ${CHIP})
-    
-    IF(STM32_SIZE_CODE STREQUAL "B")
-        SET(FLASH "128K")
-    ELSEIF(STM32_SIZE_CODE STREQUAL "C")
-        SET(FLASH "256K")
-    ELSEIF(STM32_SIZE_CODE STREQUAL "E")
-        SET(FLASH "512K")
-    ELSEIF(STM32_SIZE_CODE STREQUAL "R")
-        SET(FLASH "512K")
-    ELSEIF(STM32_SIZE_CODE STREQUAL "G")
-        SET(FLASH "1024K")
-    ELSEIF(STM32_SIZE_CODE STREQUAL "I")
-        SET(FLASH "2048K")
+    MESSAGE(***\ ${CHIP}\ ***)
+    IF(NOT STM32MCUS_CSV)
+        SET(STM32MCUS_CSV ${_STM32MCUS_CSV})
     ENDIF()
-    
-    STM32_GET_CHIP_TYPE(${CHIP} TYPE)
-    
-    IF(${TYPE} STREQUAL "401xC")
-        SET(RAM "64K")
-    ELSEIF(${TYPE} STREQUAL "401xE")
-        SET(RAM "96K")
-    ELSEIF(${TYPE} STREQUAL "411xE")
-        SET(RAM "128K")
-    ELSEIF(${TYPE} STREQUAL "405xx")
-        SET(RAM "128K")
-    ELSEIF(${TYPE} STREQUAL "415xx")
-        SET(RAM "128K")
-    ELSEIF(${TYPE} STREQUAL "407xx")
-        SET(RAM "128K")
-    ELSEIF(${TYPE} STREQUAL "417xx")
-        SET(RAM "128K")
-    ELSEIF(${TYPE} STREQUAL "427xx")
-        SET(RAM "192K")
-    ELSEIF(${TYPE} STREQUAL "437xx")
-        SET(RAM "192K")
-    ELSEIF(${TYPE} STREQUAL "429xx")
-        SET(RAM "192K")
-    ELSEIF(${TYPE} STREQUAL "439xx")
-        SET(RAM "192K")
-    ELSEIF(${TYPE} STREQUAL "446xx")
-        SET(RAM "128K")
+
+    FILE(STRINGS ${STM32MCUS_CSV} ROW REGEX "^${CHIP},[0-9]+,[0-9]+$")
+
+    IF(${ROW} MATCHES "${CHIP},[0-9]+,[0-9]+")
+        STRING(REGEX REPLACE ".+,([0-9]+),.+" "\\1" ${FLASH_SIZE} ${ROW})
+        STRING(REGEX REPLACE ".+,.+,([0-9]+)" "\\1" ${RAM_SIZE} ${ROW})
+    ELSE()
+        MESSAGE(FATAL_ERROR "Invalid/unsupported STM32F4 chip: ${CHIP}")
     ENDIF()
-    
-    SET(${FLASH_SIZE} ${FLASH})
-    SET(${RAM_SIZE} ${RAM})
+    MESSAGE(***\ ${CHIP}\ ${FLASH_SIZE}\ ${RAM_SIZE} \ ***)
 ENDMACRO()
 
 FUNCTION(STM32_SET_CHIP_DEFINITIONS TARGET CHIP_TYPE)

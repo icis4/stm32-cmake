@@ -1,11 +1,14 @@
 # Build STM32.csv 
 # from http://www.st.com/content/st_com/en/products/microcontrollers/stm32-32-bit-arm-cortex-mcus.html?querycriteria=productId=SC1169
 # Download, Save XLS as CSV "," delimited
-MACRO(STM32_GET_CHIP_PARAMETERS CHIP _FLASH _RAM _FAMILY)
+
+SET(_STM32MCUS_CSV ${CMAKE_CURRENT_LIST_DIR}/stm32mcus.csv) # Keep path to module to use in macro
+
+MACRO(STM32_GET_CHIP_PARAMETERS_CSV CHIP _FLASH _RAM _FAMILY)
     STRING(TOUPPER ${CHIP} _CHIP)
 
     IF(NOT STM32MCUS_CSV)
-        SET(STM32MCUS_CSV stm32mcus.csv)
+        SET(STM32MCUS_CSV ${_STM32MCUS_CSV})
     ENDIF()
 
     FILE(STRINGS ${STM32MCUS_CSV} ROW REGEX "^${_CHIP},[0-9]+,[0-9]+$")
